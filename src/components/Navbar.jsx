@@ -95,13 +95,11 @@ function Navbar() {
             <div
               ref={profileRef}
               style={{ position: "relative", marginLeft: "8px", padding: "5px 0" }}
-              onMouseEnter={() => setShowProfileMenu(true)}
-              onMouseLeave={() => setShowProfileMenu(false)}
             >
               <div
                 className="dashboard-avatar"
                 style={styles.avatar}
-                onClick={() => navigate("/dashboard")}
+                onClick={() => setShowProfileMenu((prev) => !prev)}
               >
                 {renderAvatarContent()}
               </div>
@@ -127,8 +125,17 @@ function Navbar() {
                   </div>
 
                   <div style={styles.menuDivider} />
-                  
-                  {/* REPLACED SETTINGS WITH MY ORDERS */}
+
+                  <button
+                    style={styles.menuItem}
+                    onClick={() => {
+                      navigate("/dashboard");
+                      setShowProfileMenu(false);
+                    }}
+                  >
+                    🏠 My Dashboard
+                  </button>
+
                   <button 
                     style={styles.menuItem}
                     onClick={() => {
