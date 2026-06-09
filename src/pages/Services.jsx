@@ -61,7 +61,6 @@ function Services() {
 
       <div style={styles.mainContainer}>
 
-        {/* HEADING */}
         {!selectedService && (
 
           <div style={styles.headerArea}>
@@ -73,7 +72,6 @@ function Services() {
           </div>
         )}
 
-        {/* SERVICES GRID */}
         {!selectedService && (
 
           <div
@@ -89,7 +87,6 @@ function Services() {
                 style={styles.card}
               >
 
-                {/* IMAGE */}
                 <div style={styles.imageWrapper}>
 
                   <img
@@ -101,7 +98,6 @@ function Services() {
 
                 </div>
 
-                {/* CONTENT */}
                 <div style={styles.cardContent}>
 
                   <div style={styles.topContent}>
@@ -136,7 +132,6 @@ function Services() {
           </div>
         )}
 
-        {/* DETAILS PAGE */}
         {selectedService && (
 
           <div
@@ -144,7 +139,6 @@ function Services() {
             style={styles.detailsContainer}
           >
 
-            {/* LEFT IMAGE */}
             <div style={styles.detailsLeft}>
 
               <img
@@ -155,7 +149,6 @@ function Services() {
 
             </div>
 
-            {/* RIGHT CONTENT */}
             <div style={styles.detailsRight}>
 
               <span style={styles.detailsNumber}>
@@ -351,7 +344,6 @@ const styles = {
     color: "#FFFFFF",
   },
 
-  /* DETAILS PAGE */
 
   detailsContainer: {
     width: "100%",

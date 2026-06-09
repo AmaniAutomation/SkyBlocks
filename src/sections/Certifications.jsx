@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-// Image Imports
 import c1 from "../assets/images/c1.png";
 import c2 from "../assets/images/c2.png";
 import c3 from "../assets/images/c3.png";
@@ -18,7 +17,6 @@ const Certifications = () => {
     { name: "Research Mentor", role: "Robotics Systems", org: "Technology Center" },
   ];
 
-  // --- LIGHTBOX STATE ---
   const [lightbox, setLightbox] = useState({ open: false, index: 0, list: [] });
 
   const openLightbox = (index, list) => {
@@ -43,7 +41,6 @@ const Certifications = () => {
     }));
   }, []);
 
-  // --- KEYBOARD NAVIGATION LOGIC ---
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!lightbox.open) return;
@@ -58,15 +55,14 @@ const Certifications = () => {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    // Cleanup listener on unmount
+    
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lightbox.open, nextImage, prevImage, closeLightbox]);
 
   return (
     <section style={styles.section}>
       <div style={styles.mainContainer}>
-        
-        {/* --- SECTION 1: RECOGNITIONS --- */}
+
         <div style={styles.subSection}>
           <div style={styles.headerArea}>
             <div style={styles.badge}>
@@ -90,7 +86,6 @@ const Certifications = () => {
           </div>
         </div>
 
-        {/* --- SECTION 2: ECOSYSTEM --- */}
         <div style={{ ...styles.subSection, marginTop: "120px" }}>
           <div style={styles.headerArea}>
             <div style={styles.badge}>
@@ -113,7 +108,6 @@ const Certifications = () => {
             ))}
           </div>
 
-          {/* MENTOR NAMES GRID */}
           <div style={styles.mentorGrid}>
             {mentors.map((m, i) => (
               <div key={i} style={styles.mentorInfoCard}>
@@ -126,7 +120,6 @@ const Certifications = () => {
         </div>
       </div>
 
-      {/* --- FULL SCREEN CAROUSEL (LIGHTBOX) --- */}
       {lightbox.open && (
         <div style={styles.lightboxOverlay} onClick={closeLightbox}>
           <button style={styles.closeBtn} onClick={closeLightbox}>✕</button>
@@ -211,7 +204,6 @@ const styles = {
   mentorRole: { fontSize: "14px", fontWeight: "600", color: "#11306D" },
   mentorOrg: { fontSize: "12px", color: "#64748B" },
 
-  // --- LIGHTBOX STYLES ---
   lightboxOverlay: {
     position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
     backgroundColor: "rgba(15, 23, 42, 0.98)", zIndex: 9999,

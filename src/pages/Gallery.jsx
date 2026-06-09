@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 
-/**
- * IMPORT & PROCESS IMAGES
- */
+
 const imageModules = import.meta.glob(
   "/src/assets/images/17_files/*.{png,PNG,jpg,JPG,jpeg,JPEG}",
   { eager: true }
@@ -29,18 +27,14 @@ const sortedImages = Object.values(imageModules)
     return getNum(a) - getNum(b);
   });
 
-/**
- * TOTAL MEDIA ARRAY
- */
+
 const allMedia = [
   ...sortedImages.map((src) => ({
     type: "image",
     src,
   })),
 
-  /**
-   * VIDEO 1 - YOUTUBE
-   */
+  
   {
     type: "video",
     src: "https://www.youtube.com/embed/zE5HL3v1B3A",
@@ -49,9 +43,7 @@ const allMedia = [
     isYoutube: true,
   },
 
-  /**
-   * VIDEO 2 - WEBSITE VIDEO
-   */
+  
   {
     type: "video",
     src:
@@ -61,13 +53,14 @@ const allMedia = [
 ];
 
 function Gallery() {
-  const [selectedIndex, setSelectedIndex] = useState(null);
-
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isFullscreen, setIsFullscreen] =
+  useState(false);
   const openLightbox = (index) =>
     setSelectedIndex(index);
 
   const closeLightbox = () =>
-    setSelectedIndex(null);
+  setIsFullscreen(false);
 
   const showNext = useCallback(() => {
     setSelectedIndex(
@@ -83,12 +76,9 @@ function Gallery() {
     );
   }, []);
 
-  /**
-   * KEYBOARD NAVIGATION
-   */
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (selectedIndex === null) return;
+      if (!isFullscreen) return;
 
       if (
         e.key === "ArrowRight" ||
@@ -115,16 +105,16 @@ function Gallery() {
         "keydown",
         handleKeyDown
       );
-  }, [selectedIndex, showNext, showPrev]);
+  }, [isFullscreen, showNext, showPrev]);
 
   return (
     <section style={styles.section}>
-      {/* BACKGROUND GLOWS */}
+      
       <div style={styles.bgGlow1} />
       <div style={styles.bgGlow2} />
 
       <div style={styles.mainContainer}>
-        {/* HEADER */}
+        
         <div style={styles.headerArea}>
           <div style={styles.badge}>
             <span style={styles.badgeLine} />
@@ -152,110 +142,103 @@ function Gallery() {
           </p>
         </div>
 
-        {/* MEDIA GRID */}
-        <div
-          className="gallery-grid"
-          style={styles.galleryGrid}
-        >
-          {allMedia.map((item, index) => (
-            <div
-              key={index}
-              className="gallery-card"
-              style={styles.galleryCard}
-              onClick={() =>
-                openLightbox(index)
-              }
-            >
-              <div style={styles.imageWrapper}>
-                {/* IMAGE */}
-                {item.type === "image" && (
-                  <img
-                    src={item.src}
-                    alt={`Media ${index + 1}`}
-                    style={styles.galleryImage}
-                    loading="lazy"
-                  />
-                )}
+        <div style={styles.carouselContainer}>
+  <button
+    style={styles.carouselArrow}
+    onClick={showPrev}
+  >
+    ❮
+  </button>
 
-                {/* YOUTUBE VIDEO */}
-                {item.type === "video" &&
-                  item.isYoutube && (
-                    <img
-                      src={item.thumb}
-                      alt="Video Thumbnail"
-                      style={styles.galleryImage}
-                    />
-                  )}
+  <div
+  style={{
+    ...styles.carouselMain,
+    position: "relative",
+  }}
+>
+  <button
+    style={styles.fullscreenBtn}
+    onClick={() =>
+      setIsFullscreen(true)
+    }
+  >
+    ⛶
+  </button>
 
-                {/* DIRECT VIDEO */}
-                {item.type === "video" &&
-                  !item.isYoutube && (
-                    <video
-                      muted
-                      playsInline
-                      style={styles.galleryImage}
-                    >
-                      <source
-                        src={item.src}
-                        type="video/mp4"
-                      />
-                    </video>
-                  )}
+  {allMedia[selectedIndex].type === "image" ? (
+  <img
+    src={allMedia[selectedIndex].src}
+    alt="Gallery"
+    style={styles.carouselImage}
+    onClick={() =>
+      setIsFullscreen(true)
+    }
+  />
+) : allMedia[selectedIndex].isYoutube ? (
+  <iframe
+    src={allMedia[selectedIndex].src}
+    title="video"
+    style={styles.carouselVideo}
+    frameBorder="0"
+    allowFullScreen
+  />
+) : (
+  <video
+    controls
+    style={styles.carouselVideo}
+  >
+    <source
+      src={allMedia[selectedIndex].src}
+      type="video/mp4"
+    />
+  </video>
+)}
+</div>
 
-                {/* OVERLAY */}
-                <div
-                  className="overlay"
-                  style={styles.overlay}
-                >
-                  <div
-                    style={styles.overlayContent}
-                  >
-                    <span
-                      style={
-                        styles.overlayCategory
-                      }
-                    >
-                      {item.type === "image"
-                        ? "TECHNICAL VIEW"
-                        : "VIDEO SHOWCASE"}
-                    </span>
+  <button
+    style={styles.carouselArrow}
+    onClick={showNext}
+  >
+    ❯
+  </button>
+</div>
 
-                    <h3
-                      style={styles.overlayTitle}
-                    >
-                      Item {index + 1}
-                    </h3>
-
-                    <span
-                      style={styles.clickHint}
-                    >
-                      Click to open
-                    </span>
-                  </div>
-                </div>
-
-                {/* PLAY ICON */}
-                {item.type === "video" && (
-                  <div style={styles.playIcon}>
-                    ▶
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* LIGHTBOX */}
-      {selectedIndex !== null && (
+<div style={styles.thumbnailRow}>
+  {allMedia.map((item, index) => (
+    <img
+      key={index}
+      src={
+        item.type === "image"
+          ? item.src
+          : item.thumb ||
+            "https://via.placeholder.com/100"
+      }
+      alt=""
+      style={{
+        ...styles.thumbnail,
+        border:
+          selectedIndex === index
+            ? "3px solid #11306D"
+            : "2px solid #E2E8F0",
+      }}
+      onClick={() =>
+        setSelectedIndex(index)
+      }
+    />
+  ))}
+</div>
+</div>
+      {isFullscreen && (
         <div
           style={styles.lightboxOverlay}
           onClick={closeLightbox}
         >
-          {/* CLOSE */}
+          
           <button
             style={styles.closeBtn}
-            onClick={closeLightbox}
+            onClick={() =>
+  setIsFullscreen(false)
+}
           >
             ✕
           </button>
@@ -280,26 +263,26 @@ function Gallery() {
             </svg>
           </button>
 
-          {/* CONTENT */}
           <div
             style={styles.lightboxContent}
             onClick={(e) =>
               e.stopPropagation()
             }
           >
-            {/* IMAGE */}
+           
             {allMedia[selectedIndex].type ===
             "image" ? (
               <img
-                src={
-                  allMedia[selectedIndex].src
-                }
-                style={styles.fullMedia}
-                alt="Full View"
-              />
+  src={allMedia[selectedIndex].src}
+  alt="Gallery"
+  style={styles.carouselImage}
+  onClick={() =>
+    setIsFullscreen(true)
+  }
+/>
             ) : allMedia[selectedIndex]
                 .isYoutube ? (
-              /* YOUTUBE */
+           
               <iframe
                 src={`${allMedia[selectedIndex].src}?autoplay=1`}
                 style={styles.fullVideo}
@@ -308,7 +291,7 @@ function Gallery() {
                 allowFullScreen
               ></iframe>
             ) : (
-              /* DIRECT VIDEO */
+             
               <video
                 src={
                   allMedia[selectedIndex].src
@@ -325,7 +308,6 @@ function Gallery() {
             </div>
           </div>
 
-          {/* RIGHT */}
           <button
             style={styles.navBtnRight}
             onClick={(e) => {
@@ -347,56 +329,7 @@ function Gallery() {
         </div>
       )}
 
-      <style>
-        {`
-          * {
-            box-sizing: border-box;
-          }
-
-          .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-          }
-
-          .gallery-card {
-            position: relative;
-            height: 350px;
-            border-radius: 24px;
-            overflow: hidden;
-            background-color: #fff;
-            border: 1px solid #E2E8F0;
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            cursor: pointer;
-            padding: 15px;
-          }
-
-          .gallery-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px -10px rgba(17, 48, 109, 0.15);
-          }
-
-          .gallery-card:hover .overlay {
-            opacity: 1;
-          }
-
-          @media (max-width: 1100px) {
-            .gallery-grid {
-              grid-template-columns: repeat(2, 1fr);
-            }
-          }
-
-          @media (max-width: 700px) {
-            .gallery-grid {
-              grid-template-columns: 1fr;
-            }
-
-            .gallery-card {
-              height: 300px;
-            }
-          }
-        `}
-      </style>
+      
     </section>
   );
 }
@@ -422,7 +355,7 @@ const styles = {
 
   headerArea: {
     textAlign: "center",
-    marginBottom: "70px",
+    marginBottom: "20px",
   },
 
   badge: {
@@ -446,30 +379,86 @@ const styles = {
     letterSpacing: "3px",
   },
 
-  mainHeading: {
-    fontSize: "clamp(32px, 5vw, 56px)",
-    fontWeight: "900",
-    color: "#0F172A",
-    margin: 0,
-    letterSpacing: "-1.5px",
-  },
+  headerArea: {
+  textAlign: "center",
+  marginBottom: "15px",
+},
 
-  headingHighlight: {
-    color: "#11306D",
-    fontWeight: "300",
-  },
+mainHeading: {
+  fontSize: "clamp(24px, 4vw, 40px)",
+  fontWeight: "900",
+  color: "#0F172A",
+  margin: 0,
+  letterSpacing: "-1px",
+},
 
-  subText: {
-    marginTop: "20px",
-    color: "#64748B",
-    fontSize: "17px",
-    lineHeight: "1.7",
-  },
+headingHighlight: {
+  color: "#11306D",
+  fontWeight: "300",
+},
+
+subText: {
+  marginTop: "8px",
+  color: "#64748B",
+  fontSize: "14px",
+  lineHeight: "1.5",
+},
 
   galleryGrid: {
     width: "100%",
   },
+  carouselContainer: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "20px",
+},
 
+carouselMain: {
+  height: "420px",
+  maxWidth: "900px",
+  margin: "0 auto",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  position: "relative",
+},
+
+carouselImage: {
+  width: "100%",
+  height: "100%",
+  objectFit: "contain",
+  borderRadius: "12px",
+},
+
+carouselVideo: {
+  width: "100%",
+  height: "100%",
+},
+
+carouselArrow: {
+  border: "none",
+  background: "transparent",
+  fontSize: "50px",
+  cursor: "pointer",
+  color: "#11306D",
+},
+
+thumbnailRow: {
+  display: "flex",
+  justifyContent: "center",
+  gap: "10px",
+  marginTop: "30px",
+  flexWrap: "wrap",
+},
+
+thumbnail: {
+  width: "100px",
+  height: "70px",
+  objectFit: "cover",
+  borderRadius: "8px",
+  cursor: "pointer",
+},
   galleryCard: {
     backgroundColor: "#FFFFFF",
   },
@@ -651,6 +640,18 @@ const styles = {
     background:
       "radial-gradient(circle, rgba(59, 130, 246, 0.03) 0%, transparent 70%)",
   },
+  fullscreenBtn: {
+  position: "absolute",
+  top: "15px",
+  right: "15px",
+  border: "none",
+  background: "rgba(0,0,0,0.6)",
+  color: "#fff",
+  padding: "10px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontSize: "18px",
+},
 };
 
 export default Gallery;

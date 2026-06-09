@@ -11,34 +11,25 @@ function Signup() {
   const [warning, setWarning] = useState("");
   const [otp, setOtp] = useState("");
   
-  // Visibility Toggles
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
-  // Timer States
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  // Form State
   const [formData, setFormData] = useState({
     firstName: "", lastName: "", email: "", password: "", confirmPassword: "",
     accountType: "", agreePrivacy: false, agreeNews: false, agreeGuidelines: false
   });
 
-  // Validation Errors
   const [errors, setErrors] = useState({ firstName: "", lastName: "", email: "" });
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  // Timer Logic for Step 3
   useEffect(() => {
     let interval;
     if (step === 3 && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
+      interval = setInterval(() => { setTimer((prev) => prev - 1); }, 1000);
     } else if (timer === 0) {
       setCanResend(true);
       clearInterval(interval);
@@ -50,40 +41,54 @@ function Signup() {
     const { name, value, type, checked } = e.target;
     const val = type === "checkbox" ? checked : value;
 
-    // Name Validation (Letters only)
     if (name === "firstName" || name === "lastName") {
       const nameRegex = /^[a-zA-Z\s]*$/;
       if (!nameRegex.test(value)) {
         setErrors(prev => ({ ...prev, [name]: "Only letters allowed" }));
-        return; // Block entry of symbols/numbers
+        return; 
       } else {
         setErrors(prev => ({ ...prev, [name]: "" }));
       }
     }
 
-    // Email Validation (@ check)
     if (name === "email") {
-      setErrors(prev => ({ ...prev, email: value.includes("@") ? "" : "Invalid email (missing @)" }));
+      setErrors(prev => ({ ...prev, email: value.includes("@") ? "" : "Invalid email" }));
     }
 
     setFormData(prev => ({ ...prev, [name]: val }));
-    setWarning("");
+    setWarning(""); 
   };
 
-  // Validation Logic for Buttons
-  const isEmailValid = formData.email.includes("@");
-  const isNameValid = formData.firstName && formData.lastName && !errors.firstName && !errors.lastName;
-  const passwordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword !== "";
-  const isStep1Valid = isNameValid && isEmailValid && passwordsMatch && formData.password.length >= 6;
+  const isStep1Valid = formData.firstName && formData.lastName && !errors.firstName && !errors.lastName && formData.email.includes("@") && formData.password === formData.confirmPassword && formData.password.length >= 6;
   const isStep2Valid = formData.accountType !== "" && formData.agreePrivacy && formData.agreeNews && formData.agreeGuidelines;
 
-  // Step 2 -> 3: Send OTP via Supabase
+  const handleNextStep1 = async () => {
+    setLoading(true);
+    setWarning("");
+    
+    const { error } = await supabase.auth.signUp({
+      email: formData.email.trim(),
+      password: formData.password,
+    });
+
+    if (error) {
+      if (error.message.toLowerCase().includes("already registered") || error.status === 400) {
+        setWarning("Already registered. Please Sign In.");
+      } else {
+        setStep(2); 
+      }
+    } else {
+      setStep(2);
+    }
+    setLoading(false);
+  };
+
   const handleRequestOtp = async () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
       email: formData.email.trim(),
       options: {
-        shouldCreateUser: true,
+        shouldCreateUser: false, 
         data: {
           first_name: formData.firstName,
           last_name: formData.lastName,
@@ -92,31 +97,11 @@ function Signup() {
       },
     });
 
-    if (error) {
-      setWarning(error.message);
-    } else {
-      setTimer(60);
-      setCanResend(false);
-      setStep(3);
-    }
-    setLoading(false);
-  };
-
-  // Resend OTP Logic
-  const handleResendOtp = async () => {
-    if (!canResend) return;
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email: formData.email.trim() });
     if (error) setWarning(error.message);
-    else {
-      setTimer(60);
-      setCanResend(false);
-      alert("New OTP sent!");
-    }
+    else { setTimer(60); setCanResend(false); setStep(3); }
     setLoading(false);
   };
 
-  // Step 3: Verify and Direct Login to Dashboard
   const handleVerifyAndDashboard = async () => {
     setLoading(true);
     const { error } = await supabase.auth.verifyOtp({
@@ -125,12 +110,8 @@ function Signup() {
       type: "email",
     });
 
-    if (error) {
-      setWarning("Invalid OTP code.");
-    } else {
-      alert("Success! Entering Dashboard...");
-      navigate("/dashboard"); // DIRECT NAVIGATION
-    }
+    if (error) setWarning("Invalid OTP code.");
+    else navigate("/dashboard");
     setLoading(false);
   };
 
@@ -140,7 +121,6 @@ function Signup() {
       <button style={styles.backHome} onClick={() => navigate("/")}>← Back to Home</button>
 
       <div className="auth-card-container" style={styles.container}>
-        {/* LEFT PANEL: FORM */}
         <div className="signup-white-side" style={styles.formPanel}>
           <div style={styles.scrollArea}>
             <div style={styles.formContentWrapper}>
@@ -165,7 +145,9 @@ function Signup() {
                     <div style={styles.inputGroup}>
                       <label style={styles.label}>Email Address</label>
                       <input name="email" type="email" style={styles.input} placeholder="name@email.com" value={formData.email} onChange={handleChange}/>
-                      {formData.email && errors.email && <span style={styles.errorTextSmall}>{errors.email}</span>}
+                      
+                      {warning && <p style={styles.warningEmail}>{warning}</p>}
+                      {errors.email && !warning && <span style={styles.errorTextSmall}>{errors.email}</span>}
                     </div>
 
                     <div style={styles.inputGroup}>
@@ -183,12 +165,19 @@ function Signup() {
                         <span style={styles.eyeIcon} onClick={() => setShowConfirmPass(!showConfirmPass)}>👁</span>
                       </div>
                       {formData.confirmPassword && (
-                        <p style={passwordsMatch ? styles.successText : styles.errorTextSmall}>
-                          {passwordsMatch ? "✓ Password matched" : "✖ Password not matched"}
+                        <p style={formData.password === formData.confirmPassword ? styles.successText : styles.errorTextSmall}>
+                          {formData.password === formData.confirmPassword ? "✓ Password matched" : "✖ Password not matched"}
                         </p>
                       )}
                     </div>
-                    <button className="primary-btn" style={!isStep1Valid ? styles.disabledBtn : styles.primaryBtn} onClick={() => setStep(2)} disabled={!isStep1Valid}>Next</button>
+                    <button 
+                      className="primary-btn" 
+                      style={!isStep1Valid || loading ? styles.disabledBtn : styles.primaryBtn} 
+                      onClick={handleNextStep1} 
+                      disabled={!isStep1Valid || loading}
+                    >
+                      {loading ? "Checking..." : "Next"}
+                    </button>
                   </div>
                 )}
 
@@ -199,8 +188,8 @@ function Signup() {
                       <label style={styles.label}>Account Type</label>
                       <select name="accountType" style={styles.input} value={formData.accountType} onChange={handleChange}>
                         <option value="">Select Type</option>
-                        <option value="individual">Individual / Student</option>
-                        <option value="business">Industrial / Business</option>
+                        <option value="individual">Individual</option>
+                        <option value="business">Business</option>
                       </select>
                     </div>
 
@@ -209,11 +198,9 @@ function Signup() {
                       <label style={styles.checkLabel}><input name="agreeNews" type="checkbox" onChange={handleChange} /> Accept letters and mails</label>
                       <label style={styles.checkLabel}><input name="agreeGuidelines" type="checkbox" onChange={handleChange} /> I agree to the Guidelines</label>
                     </div>
-
-                    {warning && <p style={styles.warning}>{warning}</p>}
                     <div style={{ display: "flex", gap: "15px" }}>
                       <button className="back-btn" onClick={() => setStep(1)} style={styles.backBtnStyle}>Back</button>
-                      <button className="primary-btn" style={!isStep2Valid ? { ...styles.primaryBtn, flex: 2, opacity: 0.4 } : { ...styles.primaryBtn, flex: 2 }} onClick={handleRequestOtp} disabled={!isStep2Valid || loading}>
+                      <button className="primary-btn" style={!isStep2Valid || loading ? styles.disabledBtn : { ...styles.primaryBtn, flex: 2 }} onClick={handleRequestOtp} disabled={!isStep2Valid || loading}>
                         {loading ? "Sending..." : "Get OTP"}
                       </button>
                     </div>
@@ -223,22 +210,16 @@ function Signup() {
                 {step === 3 && (
                   <div className="fade" style={{textAlign: "center"}}>
                     <h2 style={styles.title}>Verify OTP</h2>
-                    <p style={styles.subText}>Enter code sent to <b>{formData.email}</b></p>
+                    <p style={styles.subText}>OTP sent to <b>{formData.email}</b></p>
                     <input maxLength="6" style={{...styles.input, textAlign: 'center', fontSize: '28px', letterSpacing: '12px', height: '65px', marginBottom: '10px'}} placeholder="000000" value={otp} onChange={(e) => setOtp(e.target.value)} />
-                    
                     <div style={{ marginBottom: "20px" }}>
                       {timer > 0 ? (
                         <p style={{ fontSize: "13px", color: "#64748B" }}>Resend in <span style={{ fontWeight: "700", color: "#11306D" }}>0:{timer < 10 ? `0${timer}` : timer}</span></p>
                       ) : (
-                        <p style={{ fontSize: "14px", color: "#11306D", fontWeight: "700", cursor: "pointer", textDecoration: "underline" }} onClick={handleResendOtp}>Resend OTP</p>
+                        <p style={{ fontSize: "14px", color: "#11306D", fontWeight: "700", cursor: "pointer", textDecoration: "underline" }} onClick={handleRequestOtp}>Resend OTP</p>
                       )}
                     </div>
-
-                    {warning && <p style={styles.warning}>{warning}</p>}
-                    <button className="primary-btn" style={styles.primaryBtn} onClick={handleVerifyAndDashboard} disabled={loading}>
-                        {loading ? "Verifying..." : "Verify & Enter Dashboard"}
-                    </button>
-                    <button className="back-btn" onClick={() => setStep(2)} style={{...styles.backBtnStyle, width: '100%', marginTop: '12px', border:'none'}}>Back</button>
+                    <button className="primary-btn" style={styles.primaryBtn} onClick={handleVerifyAndDashboard} disabled={loading}>Verify & Enter Dashboard</button>
                   </div>
                 )}
 
@@ -247,7 +228,6 @@ function Signup() {
           </div>
         </div>
 
-        {/* RIGHT PANEL: BLUE INFO */}
         <div className="signup-blue-side" style={styles.infoPanel}>
           <div style={styles.infoContent}>
             <div style={styles.badge}>AMANI AUTOMATION</div>
@@ -286,16 +266,16 @@ const styles = {
   nameRow: { display: "flex", gap: "25px", marginBottom: "22px" },
   inputGroupHalf: { flex: 1, display: "flex", flexDirection: "column" },
   inputGroup: { marginBottom: "18px", position: "relative", width: "100%" },
-  errorTextSmall: { color: "#D93025", fontSize: "11px", fontWeight: "600", marginTop: "4px" },
-  successText: { color: "#1e8e3e", fontSize: "11px", fontWeight: "600", marginTop: "4px" },
   passWrapper: { position: "relative", display: "flex", alignItems: "center", width: "100%" },
   eyeIcon: { position: "absolute", right: "15px", cursor: "pointer", fontSize: "18px", zIndex: 10, userSelect: "none" },
+  errorTextSmall: { color: "#D93025", fontSize: "11px", fontWeight: "600", marginTop: "4px" },
+  warningEmail: { color: "#D93025", fontSize: "11px", fontWeight: "700", marginTop: "4px", borderLeft: '3px solid #D93025', paddingLeft: '8px' },
+  successText: { color: "#1e8e3e", fontSize: "11px", fontWeight: "600", marginTop: "4px" },
   checkboxArea: { marginBottom: "20px", display: "flex", flexDirection: "column", gap: "10px" },
   checkLabel: { fontSize: "12px", color: "#64748B", display: "flex", gap: "10px", alignItems: "center", cursor: "pointer" },
   primaryBtn: { width: "100%", padding: "16px", background: "#11306D", color: "#FFFFFF", borderRadius: "12px", fontWeight: "800", fontSize: "16px", border: "none", cursor: 'pointer' },
   disabledBtn: { width: "100%", padding: "16px", background: "#11306D", color: "#FFFFFF", borderRadius: "12px", fontWeight: "800", fontSize: "16px", border: "none", opacity: 0.4, cursor: 'not-allowed' },
   backBtnStyle: { flex: 1, padding: "14px", border: "1.5px solid #E2E8F0", background: "none", borderRadius: "12px", color: "#64748B", fontWeight: "700", cursor: 'pointer' },
-  warning: { color: "#D93025", fontSize: "12px", fontWeight: "600", marginBottom: "15px", textAlign: 'center' },
   footerText: { marginTop: "20px", textAlign: "center", color: "#64748B", fontSize: "13px" },
   toggleLink: { color: "#11306D", fontWeight: "800", cursor: "pointer", textDecoration: "none", borderBottom: '2px solid #11306D' },
   stepInd: { fontSize: "11px", fontWeight: "800", color: "#11306D", letterSpacing: "1px", marginBottom: "8px" },

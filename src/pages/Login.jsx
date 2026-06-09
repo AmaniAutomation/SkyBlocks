@@ -34,7 +34,7 @@ function Login() {
     });
 
     if (error) {
-      // Check if the user is not found/not registered
+      
       if (error.message.includes("Invalid login credentials")) {
         setErrorMsg("Account not found. It looks like you're not registered yet. Please Sign Up first.");
       } else if (error.message.includes("Email not confirmed")) {
@@ -43,7 +43,7 @@ function Login() {
         setErrorMsg(error.message);
       }
     } else {
-      // Direct navigation to Dashboard upon success
+      
       navigate("/dashboard");
     }
 
@@ -67,8 +67,7 @@ function Login() {
       </button>
 
       <div className="auth-card-container" style={styles.container}>
-        
-        {/* LEFT BLUE PANEL */}
+
         <div className="login-blue-side" style={styles.infoPanel}>
           <div style={styles.infoContent}>
             <div style={styles.badge}>
@@ -93,7 +92,6 @@ function Login() {
           </div>
         </div>
 
-        {/* RIGHT WHITE PANEL */}
         <div className="login-white-side" style={styles.formPanel}>
           <div style={styles.formWrapper}>
             <div className="form-content-fade">
@@ -145,7 +143,6 @@ function Login() {
                 </div>
               </div>
 
-              {/* DYNAMIC ERROR MESSAGE */}
               {errorMsg && (
                 <div style={styles.errorContainer}>
                    <p style={styles.warningText}>{errorMsg}</p>

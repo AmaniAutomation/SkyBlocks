@@ -11,7 +11,6 @@ function Navbar() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileRef = useRef(null);
 
-  // AUTH LISTENER
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -26,28 +25,17 @@ function Navbar() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // CLOSE PROFILE MENU ON OUTSIDE CLICK
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(event.target)
-      ) {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
         setShowProfileMenu(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // HIDE NAVBAR ON AUTH PAGES
-  const isAuthPage =
-    location.pathname === "/login" ||
-    location.pathname === "/signup";
-
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/signup";
   if (isAuthPage) return null;
 
   const navItems = [
@@ -58,15 +46,23 @@ function Navbar() {
     { name: "Gallery", path: "/gallery" },
   ];
 
+  const renderAvatarContent = (isLarge = false) => {
+    const avatarUrl = user?.user_metadata?.avatar_url;
+    const initial = user?.email?.charAt(0).toUpperCase();
+
+    if (avatarUrl) {
+      return <img src={avatarUrl} style={styles.avatarImage} alt="Profile" />;
+    }
+    return initial;
+  };
+
   return (
     <nav style={styles.nav}>
       <div style={styles.limitContainer}>
-        {/* LOGO */}
         <Link to="/" style={styles.logoContainer}>
           <img src={logo} alt="Amani Logo" style={styles.logo} />
         </Link>
 
-        {/* NAVIGATION LINKS */}
         <ul style={styles.navLinks}>
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -85,10 +81,8 @@ function Navbar() {
           })}
         </ul>
 
-        {/* BUTTON GROUP */}
         <div style={styles.buttonGroup}>
           {!user ? (
-            /* SHOW THESE ONLY IF NOT LOGGED IN */
             <>
               <Link to="/login" style={{ textDecoration: "none" }}>
                 <button className="nav-btn-secondary" style={styles.loginBtn}>Log In</button>
@@ -98,7 +92,6 @@ function Navbar() {
               </Link>
             </>
           ) : (
-            /* SHOW PROFILE ONLY IF LOGGED IN */
             <div
               ref={profileRef}
               style={{ position: "relative", marginLeft: "8px", padding: "5px 0" }}
@@ -110,19 +103,18 @@ function Navbar() {
                 style={styles.avatar}
                 onClick={() => navigate("/dashboard")}
               >
-                {user.email.charAt(0).toUpperCase()}
+                {renderAvatarContent()}
               </div>
 
               {showProfileMenu && (
                 <div style={styles.profileDropdown}>
                   <div style={styles.profileHeader}>
                     <div style={styles.largeAvatar}>
-                      {user.email.charAt(0).toUpperCase()}
+                      {renderAvatarContent(true)}
                     </div>
                     <h3 style={styles.profileName}>{user.user_metadata?.first_name || user.email.split("@")[0]}</h3>
                     <p style={styles.profileEmail}>{user.email}</p>
                     
-                    {/* NAVIGATES TO DASHBOARD + OPENS ACCOUNT TAB */}
                     <button
                       style={styles.manageBtn}
                       onClick={() => {
@@ -135,15 +127,16 @@ function Navbar() {
                   </div>
 
                   <div style={styles.menuDivider} />
-
+                  
+                  {/* REPLACED SETTINGS WITH MY ORDERS */}
                   <button 
                     style={styles.menuItem}
                     onClick={() => {
-                      navigate("/dashboard", { state: { activeTab: "Settings" } });
+                      navigate("/dashboard", { state: { activeTab: "My Orders" } });
                       setShowProfileMenu(false);
                     }}
                   >
-                    ⚙️ Settings
+                    📦 My Orders
                   </button>
 
                   <button
@@ -170,7 +163,7 @@ function Navbar() {
         .nav-item-link:hover { color: #11306D !important; }
         .nav-btn-secondary:hover { background: #f8fafc !important; transform: translateY(-1px); }
         .nav-btn-primary:hover { background: #1e4ba3 !important; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .dashboard-avatar { transition: filter 0.2s ease; cursor: pointer; }
+        .dashboard-avatar { transition: filter 0.2s ease; cursor: pointer; overflow: hidden; }
         .dashboard-avatar:hover { filter: brightness(1.1); }
         button { transition: all 0.2s ease !important; cursor: pointer; }
       `}</style>
@@ -189,16 +182,13 @@ const styles = {
   buttonGroup: { display: "flex", gap: "15px", alignItems: "center" },
   loginBtn: { padding: "10px 24px", border: "1px solid #11306D", background: "none", color: "#11306D", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: "600" },
   signupBtn: { padding: "10px 24px", border: "none", background: "#11306D", color: "#fff", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: "600" },
-  
-  /* YOUTUBE/GOOGLE STYLE AVATAR */
-  avatar: { width: "36px", height: "36px", backgroundColor: "#00897b", color: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: "500", cursor: "pointer", boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)" },
-  
-  /* GOOGLE STYLE DROPDOWN */
+  avatar: { width: "36px", height: "36px", backgroundColor: "#00897b", color: "#FFFFFF", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: "500", cursor: "pointer", boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)", overflow: "hidden" },
+  avatarImage: { width: "100%", height: "100%", objectFit: "cover" },
   profileDropdown: { position: "absolute", top: "50px", right: 0, width: "320px", background: "#fff", borderRadius: "24px", boxShadow: "0 12px 40px rgba(0,0,0,0.15)", padding: "24px", zIndex: 9999 },
   profileHeader: { display: "flex", flexDirection: "column", alignItems: "center" },
-  largeAvatar: { width: "70px", height: "70px", borderRadius: "50%", background: "#00897b", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px", fontWeight: "600", marginBottom: "14px" },
+  largeAvatar: { width: "70px", height: "70px", borderRadius: "50%", background: "#00897b", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px", fontWeight: "600", marginBottom: "14px", overflow: "hidden" },
   profileName: { margin: 0, fontSize: "20px", fontWeight: "700", color: "#1F2937" },
-  profileEmail: { marginTop: "5px", color: "#64748B", fontSize: "13px" },
+  profileEmail: { marginTop: "5px", color: "#64748B", fontSize: "14px" },
   manageBtn: { marginTop: "16px", width: "100%", padding: "10px", borderRadius: "999px", border: "1px solid #CBD5E1", background: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "13px", color: "#11306D" },
   menuDivider: { height: "1px", background: "#E2E8F0", margin: "15px 0" },
   menuItem: { width: "100%", padding: "10px", border: "none", background: "transparent", textAlign: "left", cursor: "pointer", fontSize: "14px", color: "#475569" },

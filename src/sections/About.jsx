@@ -1,18 +1,17 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
+import { useNavigate } from "react-router-dom"; 
 
 const About = () => {
-  const navigate = useNavigate(); // 2. Initialize navigate
+  const navigate = useNavigate(); 
 
   const handleExplore = () => {
-    navigate("/projects"); // 3. Define the path to your projects page
+    navigate("/projects"); 
   };
 
   return (
     <section style={styles.section}>
       <div className="about-container" style={styles.mainContainer}>
 
-        {/* LEFT IMAGE */}
         <div style={styles.imageSide}>
           <div style={styles.imageWrapper}>
             <img
@@ -24,15 +23,13 @@ const About = () => {
           </div>
         </div>
 
-        {/* RIGHT CONTENT */}
         <div style={styles.contentSide}>
-          {/* BADGE */}
+          
           <div style={styles.badge}>
             <div style={styles.badgeLine} />
             <span style={styles.badgeText}>WHO WE ARE</span>
           </div>
 
-          {/* HEADING */}
           <h2 style={styles.mainHeading}>
             Your Partner in <br />
             <span style={styles.headingHighlight}>
@@ -40,7 +37,6 @@ const About = () => {
             </span>
           </h2>
 
-          {/* DESCRIPTION */}
           <p style={styles.description}>
             At <strong>AMANI</strong>, we specialize in robotics,
             drones, and intelligent automation systems built to
@@ -53,7 +49,6 @@ const About = () => {
             automate and grow with confidence.
           </p>
 
-          {/* STATS */}
           <div style={styles.statsRow}>
             <div style={styles.statBox}>
               <h3 style={styles.statNumber}>10+</h3>
@@ -66,11 +61,10 @@ const About = () => {
             </div>
           </div>
 
-          {/* BUTTON */}
           <button 
             className="about-btn" 
             style={styles.button}
-            onClick={handleExplore} // 4. Add the click handler
+            onClick={handleExplore} 
           >
             Explore Projects
           </button>

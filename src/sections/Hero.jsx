@@ -1,23 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
+import { useNavigate } from "react-router-dom"; 
+import { supabase } from "../supabase"; // 1. Ensure you import your supabase client
 
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const navigate = useNavigate(); // 2. Initialize navigate
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
-  // 3. Navigation handler
-  const handleExplore = () => {
-    navigate("/login");
+  // 2. Updated dynamic navigation logic
+  const handleExplore = async () => {
+    // Check if a user is currently authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      // If user exists, go to Dashboard
+      navigate("/dashboard");
+    } else {
+      // If no user, go to Login
+      navigate("/login");
+    }
   };
 
   return (
     <section style={styles.section}>
       <div style={styles.mainContainer}>
-        {/* LEFT CONTENT */}
+      
         <div
           style={{
             ...styles.contentSide,
@@ -26,23 +36,21 @@ const Hero = () => {
             transition: "all 0.9s ease",
           }}
         >
-          {/* HEADING */}
+
           <h1 style={styles.mainTitle}>
             Modern Solutions for <br />
             Industrial Automation.
           </h1>
 
-          {/* DESCRIPTION */}
           <p style={styles.description}>
             We build advanced robotics, drone systems, automation platforms, and
             intelligent software solutions designed to improve efficiency,
             scalability, and innovation for modern industries.
           </p>
 
-          {/* BUTTON */}
           <div style={styles.ctaGroup}>
             <button
-              onClick={handleExplore} // 4. Added onClick handler
+              onClick={handleExplore} 
               style={styles.primaryBtn}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#11306D";
@@ -63,7 +71,6 @@ const Hero = () => {
             </button>
           </div>
 
-          {/* SERVICES */}
           <div style={styles.serviceList}>
             <span style={styles.serviceItem}>Robotics</span>
             <span style={styles.serviceDivider}>•</span>
@@ -75,7 +82,6 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* RIGHT IMAGE */}
         <div
           style={{
             ...styles.visualSide,
@@ -94,7 +100,6 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* CURVE */}
       <div style={styles.curveWrapper}>
         <svg
           viewBox="0 0 1440 100"
@@ -119,29 +124,26 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "80px 7% 100px 7%", // Added more padding to the bottom
+    padding: "80px 7% 100px 7%", 
     boxSizing: "border-box",
     fontFamily: "'Inter', sans-serif",
     position: "relative",
-    overflowY: "auto", // 5. Changed from hidden to auto to allow scrolling if content overflows
+    overflowY: "auto", 
   },
-
   mainContainer: {
     width: "100%",
     maxWidth: "1300px",
     display: "flex",
-    alignItems: "center", // Changed from flex-start for better centering
+    alignItems: "center", 
     justifyContent: "space-between",
     gap: "55px",
     zIndex: 5,
-    flexWrap: "wrap", // Allows content to wrap on smaller screens
+    flexWrap: "wrap", 
   },
-
   contentSide: {
     flex: 1,
-    minWidth: "320px", // Ensures it doesn't get too thin
+    minWidth: "320px", 
   },
-
   mainTitle: {
     fontSize: "clamp(34px, 4vw, 56px)",
     color: "#FFFFFF",
@@ -151,7 +153,6 @@ const styles = {
     letterSpacing: "-1.6px",
     maxWidth: "620px",
   },
-
   description: {
     fontSize: "17px",
     color: "rgba(255,255,255,0.82)",
@@ -160,12 +161,10 @@ const styles = {
     maxWidth: "560px",
     fontWeight: "350",
   },
-
   ctaGroup: {
     display: "flex",
     marginBottom: "34px",
   },
-
   primaryBtn: {
     padding: "15px 38px",
     backgroundColor: "#FFFFFF",
@@ -179,34 +178,29 @@ const styles = {
     boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
     outline: "none",
   },
-
   serviceList: {
     display: "flex",
     gap: "12px",
     alignItems: "center",
     flexWrap: "wrap",
-    marginBottom: "40px", // Added margin to prevent hitting the curve
+    marginBottom: "40px", 
   },
-
   serviceItem: {
     color: "#FFFFFF",
     fontSize: "14px",
     opacity: 0.75,
     fontWeight: "500",
   },
-
   serviceDivider: {
     color: "#FFFFFF",
     opacity: 0.3,
   },
-
   visualSide: {
     flex: 1,
     display: "flex",
     justifyContent: "flex-end",
     minWidth: "320px",
   },
-
   imageCard: {
     width: "100%",
     maxWidth: "500px",
@@ -214,24 +208,21 @@ const styles = {
     overflow: "hidden",
     boxShadow: "0 25px 55px rgba(0,0,0,0.32)",
   },
-
   heroImage: {
     width: "100%",
-    height: "auto", // Changed from 520px for better responsiveness
+    height: "auto", 
     maxHeight: "520px",
     objectFit: "cover",
     display: "block",
   },
-
   curveWrapper: {
     position: "absolute",
-    bottom: -1, // Ensures no tiny gaps
+    bottom: -1, 
     left: 0,
     width: "100%",
     lineHeight: 0,
-    pointerEvents: "none", // Allows clicks to pass through if needed
+    pointerEvents: "none", 
   },
-
   curveSvg: {
     width: "100%",
     height: "65px",
